@@ -103,7 +103,7 @@ Branch Information:
 Source: {self.source}
 Destination: {self.target}
 
-Choosed environments:
+Chosen environments:
 Type: {self.releaseType.upper()}
 Release: {self.releaseEnvironment}
 Validation: {self.validationEnvironment}
@@ -145,7 +145,14 @@ release_type = AvailableReleaseTypes.INVALID
 release_environment = None
 validation_environment = None
 
-if (
+if destination_branch == "staging":
+    # Staging branch'i sadece başarılı feature branch'leri toplamak için kullanılıyor
+    release_type = AvailableReleaseTypes.REGULAR
+    validation_environment = AvailableValidationEnvironments.INVALID  # Doğrulama yok
+    release_environment = AvailableReleaseEnvironments.INVALID  # Deploy edilmeyecek
+    print("🛑 Staging branch is used only for feature aggregation. Skipping validation and deployment.")
+
+elif (
     destination_branch.startswith(RepositorySpecialPrefixes.RELEASE)
     and (
         source_branch == AvailableEnvironments.STAGING
@@ -187,21 +194,8 @@ elif source_branch.startswith(RepositorySpecialPrefixes.HELPER):
 elif source_branch.startswith(RepositorySpecialPrefixes.RETRIEVE):
     release_type = AvailableReleaseTypes.RETRIEVE
 
-elif source_branch.startswith((RepositorySpecialPrefixes.FEATURE, RepositorySpecialPrefixes.FEAT, RepositorySpecialPrefixes.WRONG_FEATURE_FORMAT_ONE, RepositorySpecialPrefixes.WRONG_FEATURE_FORMAT_TWO)) and destination_branch.startswith(AvailableEnvironments.PROD):
-    release_type = AvailableEnvironments.INVALID
-    release_environment = AvailableReleaseEnvironments.INVALID
-    validation_environment = AvailableValidationEnvironments.INVALID
-
-elif destination_branch.startswith(AvailableEnvironments.PRERELEASE) and source_branch.startswith((RepositorySpecialPrefixes.RELEASE,
-                                                                                                   RepositorySpecialPrefixes.BUGFIX,
-                                                                                                   RepositorySpecialPrefixes.HOTFIX)):
-    branch = AvailableEnvironments.PRERELEASE
-    release_type = AvailableReleaseTypes.REGULAR
-        
-
 elif destination_branch.upper().replace('-', '') in AvailableEnvironments.keys():
     release_type = AvailableReleaseTypes.REGULAR
-
 
 if not release_type == AvailableReleaseTypes.INVALID:
     if release_environment is None:
@@ -227,5 +221,6 @@ print(environmentInfo)
 if (
     environmentInfo.releaseEnvironment == AvailableReleaseEnvironments.INVALID
     and environmentInfo.validationEnvironment == AvailableValidationEnvironments.INVALID
+    and destination_branch != "staging"
 ):
     raise_error("Invalid information provided", source_branch, destination_branch)

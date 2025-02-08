@@ -1,0 +1,419 @@
+name: Run Validation
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'README.md'
+      - '.github/workflows/**'
+    branches:
+      - master
+
+jobs:
+  validation-staging:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: promotion/staging
+          destination-branch: staging
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          echo "Checking if staging branch is ready for release..."
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+  
+          if [ "${{ steps.environment.outputs.release-environment }}" == "INVALID" ]; then
+            echo "Staging branch does not deploy to a sandbox. Proceeding with feature merges only."
+            exit 0
+          fi
+  validation-staging-old-name:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: promotion/staging
+          destination-branch: develop
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # check environment
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "STAGING-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "STAGING-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: promotion/qa
+          destination-branch: qa
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "QA-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "QA-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-uat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: release/20240101
+          destination-branch: uat
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "UAT-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "UAT-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-data-migration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: staging
+          destination-branch: data-migration
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "DATAMIGRATION-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "DATAMIGRATION-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-perftest-preprod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: release/20240101
+          destination-branch: perftest
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PERFTEST-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PERFTEST-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-perftest-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: prod
+          destination-branch: perftest
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PERFTEST-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PERFTEST-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-preprod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: staging
+          destination-branch: release/20230101
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PREPROD-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PREPROD-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: release/20230101
+          destination-branch: prod
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PROD-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PROD-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-prod-old-name:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: release/20230101
+          destination-branch: master
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PROD-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PROD-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-source-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: validation/sandbox-name
+          destination-branch: staging
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "SANDBOX-NAME" ] && [ "${{ steps.environment.outputs.release-environment }}" == "INVALID" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-force-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: deploy/sandbox-name
+          destination-branch: staging
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "INVALID" ] && [ "${{ steps.environment.outputs.release-environment }}" == "SANDBOX-NAME" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-hotfix-preprod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: hotfix/abc
+          destination-branch: release/hotfix-20230101
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PREPROD-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PREPROD-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-hotfix-prod:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: release/hotfix-20230101
+          destination-branch: prod
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PROD-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PROD-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-policy-feature-prod:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: feature/abc
+          destination-branch: prod
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        if: always()
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "INVALID" ] && [ "${{ steps.environment.outputs.release-environment }}" == "INVALID" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+
+  validation-check-ignore-validation-environment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: feature/abc
+          destination-branch: qa
+          event-name: ${{ github.event_name }}
+          list-ignore-validation-for-environments: '{ "PROD": false, "PREPROD": true, "QA": true, "STAGING": false }'
+
+      - name: Check Environment Result
+        if: always()
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo "Ignore validation for environment: ${{ steps.environment.outputs.ignore-validation-for-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.ignore-validation-for-environment }}" == "true" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-check-ignore-validation-environment-emtpy-value:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: feature/abc
+          destination-branch: qa
+          event-name: ${{ github.event_name }}
+          # not passing a value for list-ignore-validation-for-environments
+          # list-ignore-validation-for-environments: '{ "PROD": false, "PREPROD": true, "QA": true, "STAGING": false }'
+
+      - name: Check Environment Result
+        if: always()
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo "Ignore validation for environment: ${{ steps.environment.outputs.ignore-validation-for-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.ignore-validation-for-environment }}" == "false" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-bugfix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: fix/abc
+          destination-branch: release/20230101
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PREPROD-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PREPROD-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-release-prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: release/20240101
+          destination-branch: prerelease
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PRERELEASE-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PRERELEASE-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+            
+  validation-bugfix-prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: fix/abc
+          destination-branch: prerelease
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PRERELEASE-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PRERELEASE-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+           
+  validation-hotfix-prerelease:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: release/hotfix-123
+          destination-branch: prerelease
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "PRERELEASE-VALIDATION" ] && [ "${{ steps.environment.outputs.release-environment }}" == "PRERELEASE-RELEASE" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )
+
+  validation-qa-prerelease:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: KRYAYKN/dev1@master
+        id: environment
+        with:
+          source-branch: qa
+          destination-branch: prerelease
+          event-name: ${{ github.event_name }}
+
+      - name: Check Environment Result
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+          echo -n "TEST RESULT: "
+          ( [ "${{ steps.environment.outputs.validation-environment }}" == "INVALID" ] && [ "${{ steps.environment.outputs.release-environment }}" == "INVALID" ] ) && echo "PASS" || ( echo "FAIL" && exit 1 )       

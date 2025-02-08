@@ -50,6 +50,12 @@ runs:
         shell: bash
         id: environment
         run: |
+          if [ "${{ inputs.destination-branch }}" == "staging" ]; then
+            echo "Staging branch is used only for feature aggregation. Skipping validation and deployment."
+            echo "validation-environment=INVALID" >> $GITHUB_OUTPUT
+            echo "release-environment=INVALID" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           # action code
           python ${GITHUB_ACTION_PATH}/src/main.py
 
