@@ -1,0 +1,74 @@
+name: Environment Identification
+description: Identify target environment to deploy based on multiple configurations
+
+inputs:
+  source-branch:
+    description: Source Branch
+
+  destination-branch:
+    description: Destination branch
+
+  event-name:
+    description: Event name description
+
+  list-ignore-validation-for-environments:
+    description: List of environments with the information if we should ignore or not validation for that environment
+    default: '{}'
+
+outputs:
+  validation-environment:
+    description: "Validation environment that the pipeline should point to"
+    value: ${{ steps.environment.outputs.validation-environment }}
+  release-environment:
+    description: "Release environment that the pipeline should point to"
+    value: ${{ steps.environment.outputs.release-environment }}
+
+  ignore-validation-for-environment:
+    description: "If we should ignore the validation for the current environment. true of false"
+    value: ${{ steps.report.outputs.ignore-validation }}
+
+runs:
+  using: "composite"
+  steps:
+      - name: get python version
+        shell: bash
+        id: python
+        run: |
+          # get python version
+          PYTHON_VERSION=$( cat ${GITHUB_ACTION_PATH}/.python-version )
+          echo "python_version=${PYTHON_VERSION}" >> $GITHUB_OUTPUT
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ steps.python.outputs.python_version }}
+
+      - name: Determine Environment
+        env:
+          BRANCH_SOURCE: ${{ inputs.source-branch }}
+          BRANCH_DESTINATION: ${{ inputs.destination-branch }}
+          EVENT_NAME: ${{ inputs.event-name }}
+        shell: bash
+        id: environment
+        run: |
+          # action code
+          python ${GITHUB_ACTION_PATH}/src/main.py
+
+      - name: Report Environment Information
+        shell: bash
+        id: report
+        run: |
+          # print outputs
+          echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
+          echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
+
+          IGNORE_VALIDATION=$(echo '${{ inputs.list-ignore-validation-for-environments }}' | jq '."${{ steps.environment.outputs.environment }}"')
+          echo "Ignore validation for environment: ${IGNORE_VALIDATION}"
+
+          if [ "${IGNORE_VALIDATION}" == "null" ]; then
+            echo "Null value detected for environment. "
+            echo "Please check if the repository has the right variable configured."
+            echo "Replacing the value by false."
+            IGNORE_VALIDATION="false"
+          fi
+
+          echo "ignore-validation=${IGNORE_VALIDATION}" >> $GITHUB_OUTPUT
