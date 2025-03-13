@@ -64,12 +64,12 @@ class AvailableEnvironments(str, ExtendedEnum):
 
 
 class AvailableReleaseEnvironments(str, ExtendedEnum):
-    QA = "QA-RELEASE"
+    QA = "LocalizationSandbox"#"QA-RELEASE"
     STAGING = "STAGING-RELEASE"
     UAT = "UAT-RELEASE"
     DATAMIGRATION = "DATAMIGRATION-RELEASE"
     PERFTEST = "PERFTEST-RELEASE"
-    PREPROD = "PREPROD-RELEASE"
+    PREPROD = "LocalisationSandbox"#"PREPROD-RELEASE"
     PRERELEASE = "PRERELEASE-RELEASE"
     PROD = "PROD-RELEASE"
     INVALID = "INVALID"
