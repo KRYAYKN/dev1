@@ -22,7 +22,6 @@ outputs:
   release-environment:
     description: "Release environment that the pipeline should point to"
     value: ${{ steps.environment.outputs.release-environment }}
-
   ignore-validation-for-environment:
     description: "If we should ignore the validation for the current environment. true of false"
     value: ${{ steps.report.outputs.ignore-validation }}
@@ -30,17 +29,22 @@ outputs:
 runs:
   using: "composite"
   steps:
-      - name: get python version
+      - name: Get Python Version
         shell: bash
         id: python
         run: |
-          # get python version
-          PYTHON_VERSION=$( cat ${GITHUB_ACTION_PATH}/.python-version )
+          # Get Python version
+          PYTHON_VERSION=$(cat ${GITHUB_ACTION_PATH}/.python-version)
           echo "python_version=${PYTHON_VERSION}" >> $GITHUB_OUTPUT
 
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ steps.python.outputs.python_version }}
+
+      # PYTHONPATH set
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=${GITHUB_ACTION_PATH}/src" >> $GITHUB_ENV
+        shell: bash
 
       - name: Determine Environment
         env:
@@ -56,14 +60,14 @@ runs:
             echo "release-environment=INVALID" >> $GITHUB_OUTPUT
             exit 0
           fi
-          # action code
+          # Action Code - Python Script Çalıştır
           python ${GITHUB_ACTION_PATH}/src/main.py
 
       - name: Report Environment Information
         shell: bash
         id: report
         run: |
-          # print outputs
+          # Print outputs
           echo "Validation Environment: ${{ steps.environment.outputs.validation-environment }}"
           echo "Release Environment: ${{ steps.environment.outputs.release-environment }}"
 
@@ -71,7 +75,7 @@ runs:
           echo "Ignore validation for environment: ${IGNORE_VALIDATION}"
 
           if [ "${IGNORE_VALIDATION}" == "null" ]; then
-            echo "Null value detected for environment. "
+            echo "Null value detected for environment."
             echo "Please check if the repository has the right variable configured."
             echo "Replacing the value by false."
             IGNORE_VALIDATION="false"
